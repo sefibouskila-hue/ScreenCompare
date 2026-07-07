@@ -23,7 +23,7 @@
   }
 
   function getFilter() {
-    return (window.__dupscreen_network_filter || 'rest').toLowerCase();
+    return (window.__dupscreen_network_filter || '').toLowerCase();
   }
 
   function getLabel() {

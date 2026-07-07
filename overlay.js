@@ -388,14 +388,18 @@
       sendMsg({ action: 'clear-network-entries' });
       renderNetworkPanel();
     });
-    netFilter.addEventListener('change', () => {
-      const filterStr = netFilter.value || 'rest';
-      sendMsg({
-        action: 'update-network-settings',
-        filterString: filterStr,
-        maxEntries: parseInt(netMax.value) || 1000,
-      });
-      sendMsg({ action: 'inject-network', filterString: filterStr });
+    let netFilterDebounce = null;
+    netFilter.addEventListener('input', () => {
+      const filterStr = netFilter.value.trim();
+      if (netFilterDebounce) clearTimeout(netFilterDebounce);
+      netFilterDebounce = setTimeout(() => {
+        sendMsg({
+          action: 'update-network-settings',
+          filterString: filterStr,
+          maxEntries: parseInt(netMax.value) || 1000,
+        });
+        sendMsg({ action: 'inject-network', filterString: filterStr });
+      }, 200);
     });
     netMax.addEventListener('change', () => {
       const nextMax = Math.max(1, Math.min(5000, parseInt(netMax.value) || 1000));
@@ -404,9 +408,17 @@
       renderNetworkPanel();
       sendMsg({
         action: 'update-network-settings',
-        filterString: netFilter.value || 'rest',
+        filterString: netFilter.value.trim(),
         maxEntries: nextMax,
       });
+    });
+
+    // Sync the (empty by default) capture filter to the background on open so a
+    // previously persisted default doesn't keep filtering behind the scenes.
+    sendMsg({
+      action: 'update-network-settings',
+      filterString: netFilter.value.trim(),
+      maxEntries: parseInt(netMax.value) || 1000,
     });
     netExport.addEventListener('click', () => {
       const data = JSON.stringify(networkEntries, null, 2);
@@ -467,7 +479,7 @@
       updateRecordMockBadge();
       updateRecordMockLabel();
       if (!recordMockActive && !networkActive) {
-        sendMsg({ action: 'inject-network', filterString: netFilter.value || 'rest' });
+        sendMsg({ action: 'inject-network', filterString: netFilter.value.trim() });
       }
       if (recordMockActive && !networkActive) {
         toggleNetwork();
@@ -588,7 +600,7 @@
       if (syncScrollActive) {
         setTimeout(() => setupScrollSync(), 300);
       }
-      const filterStr = netFilter.value || 'rest';
+      const filterStr = netFilter.value.trim();
       sendMsg({ action: 'inject-network', filterString: filterStr });
     };
   }

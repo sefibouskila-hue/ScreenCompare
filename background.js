@@ -19,7 +19,7 @@ let networkEntries = [];
 let networkMonitorWindowId = null;
 let networkMonitorTabId = null;
 let networkMonitoring = true;
-let networkSettings = { filterString: 'rest', maxEntries: 1000 };
+let networkSettings = { filterString: '', maxEntries: 1000 };
 
 // ===== Network Override State =====
 const networkOverrides = new Map();
@@ -993,7 +993,9 @@ async function removeScrollListenersFromFrames(overlayTabId) {
 async function handleInjectNetwork(message, sender) {
   const overlayTabId = sender.tab.id;
   const frames = await chrome.webNavigation.getAllFrames({ tabId: overlayTabId });
-  const filter = message.filterString || networkSettings.filterString || 'rest';
+  const filter = message.filterString !== undefined
+    ? message.filterString
+    : (networkSettings.filterString || '');
 
   for (const frameLabel of ['A', 'B']) {
     const target = getFrameForLabel(frames, frameLabel);
@@ -2052,7 +2054,7 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
       }
     }
 
-    const filter = networkSettings.filterString || 'rest';
+    const filter = networkSettings.filterString || '';
     const isRecTarget = recordReplayActive && frameLabel === recordTarget;
 
     await chrome.scripting.executeScript({
@@ -2114,7 +2116,7 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
     const frameIndex = subFrames.findIndex(f => f.frameId === frameId);
     if (frameIndex !== -1) {
       const frameLabel = frameIndex === 0 ? 'A' : 'B';
-      const filter = networkSettings.filterString || 'rest';
+      const filter = networkSettings.filterString || '';
       try {
         await chrome.scripting.executeScript({
           target: { tabId, frameIds: [frameId] },

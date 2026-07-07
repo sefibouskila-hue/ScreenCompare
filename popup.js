@@ -260,9 +260,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     imeiNotice.textContent = text;
   }
 
-  const GITLAB_RAW_URL = 'https://gitlab.corp.amdocs.com/SEFIBU/dupscreen-chrome-plugin/-/raw/master/manifest.json';
-  const GITLAB_DOWNLOAD_URL = 'https://gitlab.corp.amdocs.com/SEFIBU/dupscreen-chrome-plugin/-/archive/master/dupscreen-chrome-plugin-master.zip';
-  const GITLAB_REPO_URL = 'https://gitlab.corp.amdocs.com/SEFIBU/dupscreen-chrome-plugin';
+  const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/sefibouskila-hue/ScreenCompare/main/manifest.json';
+  const GITHUB_DOWNLOAD_URL = 'https://github.com/sefibouskila-hue/ScreenCompare/archive/refs/heads/main.zip';
+  const GITHUB_REPO_URL = 'https://github.com/sefibouskila-hue/ScreenCompare';
 
   const versionLabel = document.getElementById('versionLabel');
   const versionStatus = document.getElementById('versionStatus');
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function checkForUpdates() {
     try {
-      const res = await fetch(GITLAB_RAW_URL, { cache: 'no-store' });
+      const res = await fetch(GITHUB_RAW_URL, { cache: 'no-store' });
       if (!res.ok) throw new Error(res.status);
       const remote = await res.json();
       const remoteVersion = remote.version;
@@ -282,14 +282,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (isNewer(remoteVersion, localVersion)) {
         versionStatus.className = 'version-status update-available';
         versionStatus.innerHTML = 'Update available (v' + escHtml(remoteVersion) + ')'
-          + ' <a href="' + escHtml(GITLAB_DOWNLOAD_URL) + '" target="_blank">Download</a>';
+          + ' <a href="' + escHtml(GITHUB_DOWNLOAD_URL) + '" target="_blank">Download</a>';
       } else {
         versionStatus.className = 'version-status up-to-date';
         versionStatus.textContent = 'Up to date';
       }
     } catch {
       versionStatus.className = 'version-status';
-      versionStatus.innerHTML = '<a href="' + escHtml(GITLAB_REPO_URL) + '" target="_blank">Check for updates</a>';
+      versionStatus.innerHTML = '<a href="' + escHtml(GITHUB_REPO_URL) + '" target="_blank">Check for updates</a>';
     }
   }
 
