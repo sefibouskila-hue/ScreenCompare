@@ -9,15 +9,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const envSelectB = document.getElementById('envSelectB');
 
   const ENVS = [
-    { name: 'UAT8',       angular: 'http://gateway-server-uat8.apps.ocpuatitvtrn.amdocs.com/',                            react: 'http://gateway-harmony-uat8.apps.ocpuatitvtrn.amdocs.com/harmony/' },
-    { name: 'UAT3',       angular: 'http://gateway-server-uat3.apps.ocpuatitvtrn.amdocs.com/',                            react: 'http://gateway-harmony-uat3.apps.ocpuatitvtrn.amdocs.com/harmony/' },
-    { name: 'UAT2',       angular: 'http://gateway-server-uat2.apps.ocpuatitvtrn.amdocs.com/',                            react: 'http://gateway-harmony-uat2.apps.ocpuatitvtrn.amdocs.com/harmony/' },
-    { name: 'LOCAL-MOCK', angular: null,                                                                                    react: 'http://localhost:5001/' },
-    { name: 'LOCAL-GW',   angular: null,                                                                                    react: 'http://localhost:8081/' },
-    { name: '33',     angular: 'http://gateway-server-env33.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/edge',      react: 'http://gateway-harmony-env33-dev.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/harmony' },
-    { name: '38-dev',     angular: 'http://gateway-server-env38-dev.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/edge',      react: 'http://gateway-harmony-env38-dev.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/harmony' },
-    { name: '50',         angular: 'http://gateway-server-env50.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/',              react: 'http://gateway-harmony-env50.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/' },
-    { name: '42',         angular: 'http://gateway-server-env42-rel.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/',          react: 'http://gateway-harmony-env42-rel.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/' },
+    { name: 'DEV',        angular: 'https://angular-dev.example.com/',     react: 'https://react-dev.example.com/' },
+    { name: 'QA',         angular: 'https://angular-qa.example.com/',      react: 'https://react-qa.example.com/' },
+    { name: 'STAGING',    angular: 'https://angular-staging.example.com/', react: 'https://react-staging.example.com/' },
+    { name: 'PROD',       angular: 'https://angular.example.com/',         react: 'https://react.example.com/' },
+    { name: 'LOCAL',      angular: 'http://localhost:4200/',              react: 'http://localhost:3000/' },
   ];
 
   function resolveEnvSide(aliasValue, fallbackSide) {
