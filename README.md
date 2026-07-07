@@ -1,5 +1,6 @@
 # DupScreen
-![Uploading image.png…]()
+<img width="1441" height="732" alt="image" src="https://github.com/user-attachments/assets/ad2a6e89-998a-439d-bb37-a6b52f2959d4" />
+
 
 **See two versions of your app side by side — pixel for pixel, style for style, API for API.**
 
