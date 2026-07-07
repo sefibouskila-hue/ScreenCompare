@@ -1,4 +1,5 @@
 # DupScreen
+![Uploading image.png…]()
 
 **See two versions of your app side by side — pixel for pixel, style for style, API for API.**
 
