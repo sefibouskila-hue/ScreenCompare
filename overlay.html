@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DupScreen - Overlay Compare</title>
+  <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <svg class="toolbar-logo" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="4" width="16" height="14" rx="1" opacity="0.5"/><rect x="6" y="6" width="16" height="14" rx="1"/>
+      </svg>
+      <span class="toolbar-title">DupScreen</span>
+    </div>
+    <div class="toolbar-urls">
+      <div class="url-group">
+        <label class="url-label url-label-a" for="aliasA">A</label>
+        <input type="text" id="aliasA" class="alias-input" placeholder="Alias" title="Custom label for Page A (e.g. React, Prod)">
+        <input type="url" id="urlA" class="url-input" placeholder="Page A URL">
+        <button id="btnRefreshA" class="toolbar-btn toolbar-btn-refresh" title="Refresh Page A" aria-label="Refresh Page A">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+      <button id="btnSwap" class="toolbar-btn" title="Swap A and B">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+        </svg>
+      </button>
+      <div class="url-group">
+        <label class="url-label url-label-b" for="aliasB">B</label>
+        <input type="text" id="aliasB" class="alias-input" placeholder="Alias" title="Custom label for Page B (e.g. Angular, Staging)">
+        <input type="url" id="urlB" class="url-input" placeholder="Page B URL">
+        <button id="btnRefreshB" class="toolbar-btn toolbar-btn-refresh" title="Refresh Page B" aria-label="Refresh Page B">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+      <button id="btnLoad" class="toolbar-btn toolbar-btn-go" title="Load URLs">Go</button>
+    </div>
+  </div>
+
+  <!-- Viewport -->
+  <div class="viewport" id="viewport">
+    <div class="frame-wrap" id="wrapA">
+      <iframe id="frameA" class="frame frame-a" title="Page A"></iframe>
+    </div>
+    <div class="frame-wrap" id="wrapB">
+      <iframe id="frameB" class="frame frame-b" title="Page B"></iframe>
+    </div>
+    <!-- Drawing canvas overlay -->
+    <canvas id="drawCanvas" class="draw-canvas"></canvas>
+
+    <!-- Swipe divider handle -->
+    <div class="divider" id="divider">
+      <div class="divider-line"></div>
+      <div class="divider-handle">
+        <svg width="14" height="24" viewBox="0 0 14 24" fill="currentColor">
+          <rect x="3" y="4" width="2" height="16" rx="1"/>
+          <rect x="9" y="4" width="2" height="16" rx="1"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Iframe error overlays -->
+    <div class="frame-error" id="errorA">
+      <p>Page A cannot be loaded in an iframe.</p>
+      <p class="error-hint">This site blocks iframe embedding. Use Split Screen mode instead.</p>
+      <button class="error-btn" id="popErrorA">Open in new tab</button>
+    </div>
+    <div class="frame-error frame-error-b" id="errorB">
+      <p>Page B cannot be loaded in an iframe.</p>
+      <p class="error-hint">This site blocks iframe embedding. Use Split Screen mode instead.</p>
+      <button class="error-btn" id="popErrorB">Open in new tab</button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="controls-left">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeOpacity" title="Opacity blend mode">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="12" r="7" opacity="0.5"/><circle cx="15" cy="12" r="7"/>
+          </svg>
+          Opacity
+        </button>
+        <button class="mode-btn" id="modeSwipe" title="Swipe divider mode">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="22"/><path d="M8 6l-4 6 4 6"/><path d="M16 6l4 6-4 6"/>
+          </svg>
+          Swipe
+        </button>
+        <button class="mode-btn" id="modeSideBySide" title="Side by side with full view">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="8" height="18" rx="1"/><rect x="14" y="3" width="8" height="18" rx="1"/>
+          </svg>
+          Side by Side
+        </button>
+      </div>
+
+      <div class="slider-group" id="opacityGroup">
+        <span class="slider-label">A</span>
+        <input type="range" id="opacitySlider" class="slider" min="0" max="100" value="50">
+        <span class="slider-label">B</span>
+        <span class="slider-value" id="opacityValue">50%</span>
+      </div>
+    </div>
+
+    <div class="controls-right">
+      <!-- Inspect CSS -->
+      <button class="ctrl-btn" id="btnInspect" title="Hover to inspect CSS properties">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Inspect
+      </button>
+
+      <!-- Compare CSS -->
+      <button class="ctrl-btn" id="btnCompare" title="Compare CSS between elements in A and B">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5M12 3v18"/>
+        </svg>
+        Compare
+      </button>
+
+      <!-- Typography Compare -->
+      <button class="ctrl-btn" id="btnTypography" title="Compare typography (fonts, sizes, weights) across all text in A and B">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="4" x2="9.5" y2="20"/><line x1="14.5" y1="4" x2="14.5" y2="20"/><line x1="7" y1="20" x2="17" y2="20"/>
+        </svg>
+        Typography
+      </button>
+
+      <!-- Network Capture -->
+      <button class="ctrl-btn" id="btnNetwork" title="Capture and compare REST calls between A and B">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        Network
+      </button>
+
+      <!-- Record & Mock -->
+      <div class="record-mock-group">
+        <button class="ctrl-btn" id="btnRecordMock" title="Record API responses from one frame and mock them on the other. APIs without a recorded response call the real server.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
+          </svg>
+          <span id="recordMockLabel">Record B &rarr; Mock A</span>
+          <span class="record-mock-badge" id="recordMockBadge" style="display:none">0</span>
+        </button>
+        <button class="ctrl-btn record-mock-swap-btn" id="btnRecordMockSwap" title="Swap record/mock direction">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Bulk Test -->
+      <button class="ctrl-btn" id="btnBulkTest" title="API Bulk Testing — select captured APIs, replace subscriber/BAN values, and run bulk tests">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+          <rect x="9" y="2" width="6" height="4" rx="1"/>
+          <path d="M9 14l2 2 4-4"/>
+        </svg>
+        Bulk Test
+      </button>
+
+      <!-- Sync Scroll -->
+      <button class="ctrl-btn" id="btnSyncScroll" title="Sync scrolling between both pages">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M8 6l4-4 4 4M8 18l4 4 4-4"/>
+        </svg>
+        Sync Scroll
+      </button>
+
+      <!-- Mirror Interact -->
+      <button class="ctrl-btn" id="btnMirror" title="Mirror interactions: select matching elements in A and B, then input affects both">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 21h10"/><path d="M12 3v14"/><rect x="3" y="3" width="7" height="11" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/>
+        </svg>
+        Mirror
+      </button>
+
+      <!-- Draw -->
+      <button class="ctrl-btn" id="btnDraw" title="Draw annotations on screen">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/>
+          <circle cx="11" cy="11" r="2"/>
+        </svg>
+        Draw
+      </button>
+      <div class="draw-sub-controls" id="drawSubControls">
+        <input type="color" id="drawColor" class="draw-color-picker" value="#ff3333" title="Pen color">
+        <select id="drawSize" class="draw-size-select" title="Pen size">
+          <option value="2">Thin</option>
+          <option value="4" selected>Medium</option>
+          <option value="8">Thick</option>
+          <option value="14">Bold</option>
+        </select>
+        <button class="ctrl-btn draw-sub-btn" id="btnDrawClear" title="Clear all drawings">Clear</button>
+        <button class="ctrl-btn draw-sub-btn" id="btnDrawHide" title="Hide/show drawings">Hide</button>
+      </div>
+
+      <!-- Screenshot -->
+      <button class="ctrl-btn" id="btnScreenshot" title="Take high-res side-by-side screenshot">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Screenshot
+      </button>
+
+      <button class="ctrl-btn" id="btnPopA" title="Open Page A in new tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Pop A
+      </button>
+      <button class="ctrl-btn" id="btnPopB" title="Open Page B in new tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Pop B
+      </button>
+      <div class="zoom-control">
+        <label class="zoom-label" for="zoomSelect">Viewport:</label>
+        <select id="zoomSelect" class="zoom-select">
+          <optgroup label="Desktop">
+            <option value="1920">1920px</option>
+            <option value="1440">1440px</option>
+            <option value="1366">1366px</option>
+          </optgroup>
+          <optgroup label="Tablet">
+            <option value="1024">1024px (iPad Landscape)</option>
+            <option value="834">834px (iPad Air/Pro)</option>
+            <option value="810">810px (iPad 10th)</option>
+            <option value="768">768px (iPad Mini)</option>
+            <option value="600">600px (Android Tablet)</option>
+          </optgroup>
+          <option value="0">Actual</option>
+        </select>
+        <input type="number" id="customWidth" class="custom-width-input" placeholder="Custom" min="320" max="3840" title="Type a custom viewport width">
+      </div>
+      <div class="visual-zoom-control">
+        <button class="zoom-btn" id="zoomOut" title="Zoom out">−</button>
+        <span class="zoom-pct" id="zoomPct">100%</span>
+        <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
+      </div>
+      <div class="pointer-toggle" id="pointerToggle">
+        <label class="pointer-label" for="ptrA">Interact:</label>
+        <button class="ptr-btn active" id="ptrA">A</button>
+        <button class="ptr-btn" id="ptrB">B</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSS Inspector floating panel -->
+  <div class="css-inspect-panel" id="cssInspectPanel">
+    <div class="css-inspect-header" id="cssInspectHeader"></div>
+    <div class="css-inspect-body" id="cssInspectBody"></div>
+  </div>
+
+  <!-- CSS Compare panel (docked, non-blocking) -->
+  <div class="css-compare-panel" id="cssComparePanel">
+    <div class="css-compare-toolbar" id="cssCompareToolbar">
+      <span class="css-compare-title">CSS Compare</span>
+      <label class="css-compare-diff-toggle">
+        <input type="checkbox" id="cssCompareDiffOnly"> Only differences
+      </label>
+      <button class="panel-minimize" id="cssCompareMin" title="Minimize">&#x2015;</button>
+      <button class="css-compare-close" id="cssCompareClose">&times;</button>
+    </div>
+    <div class="css-compare-selectors">
+      <span class="css-compare-sel css-compare-sel-a" id="cssCompareSelectorA">Click element in A</span>
+      <span class="css-compare-vs">vs</span>
+      <span class="css-compare-sel css-compare-sel-b" id="cssCompareSelectorB">Click element in B</span>
+    </div>
+    <div class="css-compare-body" id="cssCompareBody"></div>
+    <div class="css-compare-footer">
+      <button class="ctrl-btn" id="cssCompareClear">Clear Selections</button>
+    </div>
+  </div>
+
+  <!-- Typography Compare Panel -->
+  <div class="typo-panel" id="typoPanel">
+    <div class="typo-panel-toolbar" id="typoPanelToolbar">
+      <span class="typo-panel-title">Typography Compare</span>
+      <label class="typo-diff-toggle">
+        <input type="checkbox" id="typoDiffOnly"> Only differences
+      </label>
+      <button class="panel-minimize" id="typoMin" title="Minimize">&#x2015;</button>
+      <button class="typo-panel-close" id="typoPanelClose">&times;</button>
+    </div>
+    <div class="typo-panel-body" id="typoPanelBody">
+      <p class="typo-empty" id="typoEmpty">Click "Scan" to collect typography from both pages.</p>
+    </div>
+    <div class="typo-panel-footer">
+      <button class="ctrl-btn" id="typoScan">Scan Pages</button>
+      <button class="ctrl-btn" id="typoCopy">Copy</button>
+      <button class="ctrl-btn" id="typoClear">Clear</button>
+    </div>
+  </div>
+
+  <!-- Network Compare Panel -->
+  <div class="net-panel" id="netPanel">
+    <div class="net-panel-toolbar" id="netPanelToolbar">
+      <span class="net-panel-title" id="netPanelTitle">Network Compare</span>
+      <div class="net-panel-controls">
+        <label class="net-panel-label" for="netFilter">Filter:</label>
+        <input type="text" id="netFilter" class="net-panel-input" placeholder="rest" value="rest">
+        <label class="net-panel-label" for="netMax">Max:</label>
+        <input type="number" id="netMax" class="net-panel-input net-panel-input-num" value="1000" min="1" max="5000">
+        <button class="ctrl-btn" id="netClear">Clear</button>
+        <button class="ctrl-btn" id="netExport">Export</button>
+        <button class="ctrl-btn" id="netImport">Import</button>
+        <button class="ctrl-btn net-clear-overrides-btn" id="netClearOverrides" title="Remove all active network response overrides">Clear Overrides</button>
+      </div>
+      <button class="panel-minimize" id="netMin" title="Minimize">&#x2015;</button>
+      <button class="net-panel-close" id="netPanelClose">&times;</button>
+    </div>
+    <div class="net-panel-body" id="netPanelBody">
+      <div class="net-empty" id="netEmpty">Capturing REST calls from both frames...<br>Requests matching the filter will appear here, grouped by API endpoint.</div>
+    </div>
+    <div class="net-panel-resize-handle" id="netPanelResize" title="Resize panel"></div>
+  </div>
+
+  <!-- Mirror Interaction Panel -->
+  <div class="mirror-panel" id="mirrorPanel">
+    <div class="mirror-panel-toolbar" id="mirrorPanelToolbar">
+      <span class="mirror-panel-title">Mirror Interact</span>
+      <button class="panel-minimize" id="mirrorMin" title="Minimize">&#x2015;</button>
+      <button class="mirror-panel-close" id="mirrorClose">&times;</button>
+    </div>
+    <div class="mirror-panel-selectors">
+      <span class="mirror-sel mirror-sel-a" id="mirrorSelectorA">Click element in A</span>
+      <span class="mirror-sel-vs">&harr;</span>
+      <span class="mirror-sel mirror-sel-b" id="mirrorSelectorB">Click element in B</span>
+    </div>
+    <div class="mirror-panel-status" id="mirrorStatus">Select matching elements in each frame to mirror interactions.</div>
+    <div class="mirror-panel-footer">
+      <button class="ctrl-btn" id="mirrorClear">Clear Selections</button>
+    </div>
+  </div>
+
+  <!-- Override Edit Modal -->
+  <div class="override-modal-backdrop" id="overrideModalBackdrop">
+    <div class="override-modal">
+      <div class="override-modal-header">
+        <span class="override-modal-title" id="overrideModalTitle">Edit Override Response</span>
+        <button class="override-modal-close" id="overrideModalClose">&times;</button>
+      </div>
+      <div class="override-modal-info" id="overrideModalInfo"></div>
+      <div class="override-modal-body">
+        <label class="override-modal-label" for="overrideModalStatus">Status Code</label>
+        <input type="number" class="override-modal-status" id="overrideModalStatus" value="200" min="100" max="599">
+        <label class="override-modal-label" for="overrideModalEditor">Response Body (JSON)</label>
+        <textarea class="override-modal-editor" id="overrideModalEditor" spellcheck="false"></textarea>
+        <div class="override-modal-hint">
+          <button class="ctrl-btn override-modal-format" id="overrideModalFormat">Format JSON</button>
+        </div>
+      </div>
+      <div class="override-modal-footer">
+        <button class="ctrl-btn" id="overrideModalCancel">Cancel</button>
+        <button class="ctrl-btn override-modal-save" id="overrideModalSave">Save &amp; Apply Override</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Test Panel -->
+  <div class="bulk-panel" id="bulkTestPanel">
+    <div class="bulk-toolbar" id="bulkTestToolbar">
+      <span class="bulk-title">API Bulk Testing</span>
+      <div class="bulk-toolbar-actions">
+        <button class="panel-minimize" id="bulkTestMin" title="Minimize">&#x2015;</button>
+        <button class="net-panel-close" id="bulkTestClose" title="Close">&times;</button>
+      </div>
+    </div>
+    <div class="bulk-body" id="bulkTestBody">
+      <div class="bulk-tabs">
+        <button class="bulk-tab active" data-frame="A" id="bulkTabA">A</button>
+        <button class="bulk-tab" data-frame="B" id="bulkTabB">B</button>
+      </div>
+      <div class="bulk-config">
+        <div class="bulk-config-row">
+          <div class="bulk-config-col">
+            <label class="bulk-label" for="bulkPtnMdn">PTN / MDN <span class="bulk-label-dim">(one per line)</span></label>
+            <textarea class="bulk-input" id="bulkPtnMdn" rows="2" placeholder="07700900001&#10;07700900002"></textarea>
+          </div>
+          <div class="bulk-config-col">
+            <label class="bulk-label" for="bulkSubscribers">Subscriber <span class="bulk-label-dim">(one per line)</span></label>
+            <textarea class="bulk-input" id="bulkSubscribers" rows="2" placeholder="SUB001&#10;SUB002"></textarea>
+          </div>
+          <div class="bulk-config-col">
+            <label class="bulk-label" for="bulkBans">BAN / Customer ID <span class="bulk-label-dim">(one per line)</span></label>
+            <textarea class="bulk-input" id="bulkBans" rows="2" placeholder="123456&#10;789012"></textarea>
+          </div>
+          <div class="bulk-config-col">
+            <label class="bulk-label" for="bulkKeywords">Blocked Keywords <span class="bulk-label-dim">(comma / newline)</span></label>
+            <textarea class="bulk-input bulk-input-sm" id="bulkKeywords" rows="2" placeholder="blocked, denied, rejected"></textarea>
+          </div>
+        </div>
+        <div class="bulk-actions">
+          <span class="bulk-case-count" id="bulkCaseCount"></span>
+          <button class="ctrl-btn bulk-select-all-btn" id="bulkSelectAll">Select All</button>
+          <button class="ctrl-btn bulk-clear-btn" id="bulkClearBtn">Clear</button>
+          <button class="ctrl-btn bulk-run-btn" id="bulkRunBtn">Run Selected</button>
+          <button class="ctrl-btn bulk-stop-btn" id="bulkStopBtn" style="display:none">Stop</button>
+        </div>
+      </div>
+      <div class="bulk-hint" id="bulkHint" style="display:none">
+        No captured APIs yet. Enable <strong>Network</strong> capture and interact with the page, then reopen this panel.
+      </div>
+      <div class="bulk-api-list" id="bulkApiList"></div>
+      <div class="bulk-payload-preview" id="bulkPayloadPreview" style="display:none">
+        <div class="bulk-payload-header">
+          <span class="bulk-payload-title" id="bulkPayloadTitle">Request Payload</span>
+          <div class="bulk-payload-actions">
+            <button class="ctrl-btn bulk-payload-format-btn" id="bulkPayloadFormat" title="Format JSON">Format</button>
+            <button class="ctrl-btn bulk-payload-run-btn" id="bulkPayloadRun" title="Run this API with edited payload">Run</button>
+            <button class="net-panel-close" id="bulkPayloadClose" title="Close preview" style="width:20px;height:20px;font-size:14px">&times;</button>
+          </div>
+        </div>
+        <textarea class="bulk-payload-body" id="bulkPayloadBody" spellcheck="false"></textarea>
+      </div>
+      <div class="bulk-progress" id="bulkProgress" style="display:none">
+        <div class="bulk-progress-bar"><div class="bulk-progress-fill" id="bulkProgressFill"></div></div>
+        <span class="bulk-progress-text" id="bulkProgressText">0 / 0</span>
+      </div>
+      <div class="bulk-results" id="bulkResults" style="display:none">
+        <div class="bulk-results-header">
+          <div class="bulk-summary" id="bulkSummary"></div>
+          <button class="net-panel-close" id="bulkResultsClose" title="Close results" style="width:20px;height:20px;font-size:14px">&times;</button>
+        </div>
+        <div class="bulk-results-table-wrap">
+          <table class="bulk-results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>API</th>
+                <th>PTN/MDN</th>
+                <th>Subscriber</th>
+                <th>BAN</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Detail</th>
+              </tr>
+            </thead>
+            <tbody id="bulkResultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="bulk-resize" id="bulkTestResize"></div>
+  </div>
+
+  <!-- Hidden canvas for screenshot compositing -->
+  <canvas id="screenshotCanvas" style="display:none"></canvas>
+
+  <script src="overlay.js"></script>
+</body>
+</html>

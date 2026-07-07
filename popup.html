@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Screen Compare</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <header class="header">
+      <svg class="logo" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="8" height="18" rx="1"/>
+        <rect x="14" y="3" width="8" height="18" rx="1"/>
+      </svg>
+      <h1>Screen Compare</h1>
+      <button id="btnClose" class="btn-close" title="Close panel">&times;</button>
+    </header>
+
+    <!-- Screen Compare -->
+    <section class="section">
+      <h2>Screen Compare</h2>
+      <p class="hint">Compare two pages with side-by-side view and tools</p>
+      <div class="overlay-url-row">
+        <input type="text" id="overlayAliasA" placeholder="Alias A" class="input input-alias" title="Custom label for Page A (e.g. React, Prod)" value="React">
+        <select id="envSelectA" class="env-select" title="Quick-fill URL from environment"></select>
+        <input type="url" id="overlayUrlA" placeholder="Page A URL (default: current tab)" class="input" value="http://gateway-harmony-env38-dev.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/harmony/#?_s=45">
+      </div>
+      <div class="overlay-url-row">
+        <input type="text" id="overlayAliasB" placeholder="Alias B" class="input input-alias" title="Custom label for Page B (e.g. Angular, Staging)" value="Angular">
+        <select id="envSelectB" class="env-select" title="Quick-fill URL from environment"></select>
+        <input type="url" id="overlayUrlB" placeholder="Page B URL" class="input" value="http://gateway-server-env38-dev.apps.ildelocpbmmtr1059.ocpd.corp.amdocs.com/edge/?_s=29">
+      </div>
+      <button id="btnOverlay" class="btn btn-accent">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="4" width="16" height="14" rx="1" opacity="0.5"/><rect x="6" y="6" width="16" height="14" rx="1"/>
+        </svg>
+        Open Screen Compare
+      </button>
+    </section>
+
+    <!-- IMEI Generator -->
+    <section class="section">
+      <h2>IMEI Generator</h2>
+      <p class="hint">Random RBI + Luhn checksum</p>
+      <div class="imei-row">
+        <input
+          type="text"
+          id="imeiValue"
+          class="input imei-input"
+          placeholder="Click Generate to create an IMEI"
+          readonly
+        >
+        <button id="btnCopyImei" class="icon-btn" title="Copy IMEI" aria-label="Copy IMEI" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="imei-actions">
+        <button id="btnGenerateImei" class="btn btn-secondary">Generate IMEI</button>
+        <span id="imeiNotice" class="imei-notice"></span>
+      </div>
+    </section>
+
+    <!-- Test Credit Card -->
+    <section class="section">
+      <h2>Test Credit Card</h2>
+      <p class="hint">PayPal sandbox test cards</p>
+      <div id="ccCard" class="cc-card cc-hidden">
+        <div class="cc-brand-row">
+          <span id="ccBrand" class="cc-brand"></span>
+          <span id="ccType" class="cc-type"></span>
+        </div>
+        <div class="cc-number-row">
+          <span id="ccNumber" class="cc-number"></span>
+          <button id="btnCopyCc" class="icon-btn" title="Copy card number" aria-label="Copy card number">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="cc-detail-row">
+          <div class="cc-field">
+            <span class="cc-label">Exp</span>
+            <span id="ccExpiry" class="cc-value"></span>
+          </div>
+          <div class="cc-field">
+            <span class="cc-label">CVV</span>
+            <span id="ccCvv" class="cc-value"></span>
+          </div>
+        </div>
+      </div>
+      <div class="imei-actions">
+        <button id="btnGenerateCc" class="btn btn-secondary">Generate Card</button>
+        <span id="ccNotice" class="imei-notice"></span>
+      </div>
+    </section>
+
+    <div class="version-bar" id="versionBar">
+      <span class="version-label" id="versionLabel"></span>
+      <span class="version-status" id="versionStatus">Checking...</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
